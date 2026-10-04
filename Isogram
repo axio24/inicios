@@ -1,0 +1,23 @@
+using System;
+using System.Collections.Generic;
+
+public static class Isogram
+{
+    public static bool IsIsogram(string word)
+    {
+        HashSet<char> letters = new HashSet<char>();
+
+        foreach (char character in word.ToLower())
+        {
+            // Los espacios y guiones se pueden repetir
+            if (character == ' ' || character == '-')
+                continue;
+
+            // Si la letra ya existe, no es un isograma
+            if (!letters.Add(character))
+                return false;
+        }
+
+        return true;
+    }
+}

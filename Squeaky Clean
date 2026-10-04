@@ -1,0 +1,39 @@
+public static class Identifier
+{
+    public static string Clean(string identifier)
+    {
+        string result = "";
+
+        for (int i = 0; i < identifier.Length; i++)
+        {
+            char c = identifier[i];
+
+            if (char.IsControl(c))
+            {
+                result += "CTRL";
+            }
+            else if (c == ' ')
+            {
+                result += '_';
+            }
+            else if (c == '-')
+            {
+                if (i + 1 < identifier.Length)
+                {
+                    i++;
+                    result += char.ToUpper(identifier[i]);
+                }
+            }
+            else if (c >= '\u03B1' && c <= '\u03C9')
+            {
+                // Ignorar letras griegas minúsculas
+            }
+            else if (char.IsLetter(c) || c == '_')
+            {
+                result += c;
+            }
+        }
+
+        return result;
+    }
+}

@@ -1,0 +1,20 @@
+using System;
+using System.Collections.Generic;
+
+public static class Pangram
+{
+    public static bool IsPangram(string input)
+    {
+        HashSet<char> letters = new HashSet<char>();
+
+        foreach (char character in input.ToLower())
+        {
+            if (character >= 'a' && character <= 'z')
+            {
+                letters.Add(character);
+            }
+        }
+
+        return letters.Count == 26;
+    }
+}
