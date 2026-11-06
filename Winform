@@ -1,0 +1,141 @@
+-- =====================================================
+-- PROGRAMA BÁSICO DE SQL - TIENDA
+-- =====================================================
+
+CREATE DATABASE IF NOT EXISTS tienda;
+USE tienda;
+
+
+
+CREATE TABLE clientes (
+    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(50) NOT NULL,
+    apellido VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    telefono VARCHAR(15),
+    fecha_registro DATE DEFAULT CURRENT_DATE
+);
+
+CREATE TABLE productos (
+    id_producto INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    precio DECIMAL(10,2) NOT NULL,
+    stock INT DEFAULT 0,
+    categoria VARCHAR(50)
+);
+
+CREATE TABLE pedidos (
+    id_pedido INT PRIMARY KEY AUTO_INCREMENT,
+    id_cliente INT,
+    fecha_pedido DATE DEFAULT CURRENT_DATE,
+    total DECIMAL(10,2),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+
+
+INSERT INTO clientes (nombre, apellido, email, telefono) VALUES
+('Juan', 'Pérez', 'juan@email.com', '555-1234'),
+('María', 'García', 'maria@email.com', '555-5678'),
+('Pedro', 'López', 'pedro@email.com', '555-9999');
+
+INSERT INTO productos (nombre, precio, stock, categoria) VALUES
+('Laptop HP', 899.99, 10, 'Electrónica'),
+('Mouse Logitech', 25.50, 50, 'Accesorios'),
+('Teclado Mecánico', 75.00, 30, 'Accesorios'),
+('Monitor 24"', 199.99, 15, 'Electrónica');
+
+INSERT INTO pedidos (id_cliente, total) VALUES
+(1, 925.49),
+(2, 199.99),
+(1, 75.00);
+
+
+
+SELECT * FROM clientes;
+SELECT nombre, precio FROM productos;
+SELECT * FROM productos WHERE precio > 100;
+SELECT * FROM productos WHERE categoria = 'Electrónica' AND stock > 5;
+SELECT * FROM clientes WHERE nombre LIKE 'J%';
+SELECT * FROM productos ORDER BY precio DESC;
+SELECT * FROM productos ORDER BY precio DESC LIMIT 2;
+
+
+SELECT COUNT(*) AS total_clientes FROM clientes;
+SELECT SUM(total) AS ingresos_totales FROM pedidos;
+SELECT AVG(precio) AS precio_promedio FROM productos;
+SELECT MAX(precio) AS mas_caro, MIN(precio) AS mas_barato FROM productos;
+SELECT categoria, COUNT(*) AS cantidad, AVG(precio) AS promedio
+FROM productos
+GROUP BY categoria;
+
+
+SELECT p.id_pedido, c.nombre, c.apellido, p.total, p.fecha_pedido
+FROM pedidos p
+INNER JOIN clientes c ON p.id_cliente = c.id_cliente;
+
+SELECT c.nombre, c.apellido, p.id_pedido, p.total
+FROM clientes c
+LEFT JOIN pedidos p ON c.id_cliente = p.id_cliente;
+
+SELECT c.nombre, c.apellido, SUM(p.total) AS total_gastado
+FROM clientes c
+INNER JOIN pedidos p ON c.id_cliente = p.id_cliente
+GROUP BY c.id_cliente, c.nombre, c.apellido
+ORDER BY total_gastado DESC;
+
+
+
+UPDATE productos SET precio = 850.00 WHERE id_producto = 1;
+UPDATE productos SET stock = stock + 10 WHERE categoria = 'Accesorios';
+
+
+DELETE FROM clientes WHERE id_cliente = 3;
+DELETE FROM pedidos WHERE total < 100;
+
+
+
+ALTER TABLE clientes ADD COLUMN direccion VARCHAR(150);
+ALTER TABLE productos MODIFY COLUMN nombre VARCHAR(150);
+ALTER TABLE clientes DROP COLUMN direccion;
+
+
+SELECT nombre, precio, stock
+FROM productos
+WHERE categoria = 'Electrónica' AND stock > 0
+ORDER BY precio DESC
+LIMIT 3;
+
+=
+CREATE TABLE usuarios (
+    id_usuario INT PRIMARY KEY IDENTITY(1,1),
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL, -- NUNCA guardes contraseñas en texto plano
+    rol VARCHAR(20) DEFAULT 'Vendedor'   -- 'Administrador' o 'Vendedor'
+);
+
+-- Insertamos un usuario admin de prueba (Contraseña: "admin123")
+INSERT INTO usuarios (username, password_hash, rol) 
+VALUES ('admin', 'admin123', 'Administrador');
+
+CREATE TABLE facturas (
+    id_factura INT PRIMARY KEY IDENTITY(1,1),
+    id_cliente INT NOT NULL,
+    id_usuario INT NOT NULL, -- Quién hizo la venta
+    fecha_factura DATETIME DEFAULT GETDATE(),
+    total DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+);
+
+
+CREATE TABLE detalle_factura (
+    id_detalle INT PRIMARY KEY IDENTITY(1,1),
+    id_factura INT NOT NULL,
+    id_producto INT NOT NULL,
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    subtotal AS (cantidad * precio_unitario), -- Columna calculada automáticamente
+    FOREIGN KEY (id_factura) REFERENCES facturas(id_factura),
+    FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+);
